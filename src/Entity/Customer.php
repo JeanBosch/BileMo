@@ -46,7 +46,7 @@ class Customer
     private $last_buy_date;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="customers")
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="customers")
      * @ORM\JoinColumn(nullable=false)
      */
     private $vendor;
@@ -106,12 +106,12 @@ class Customer
         return $this;
     }
 
-    public function getVendor(): ?Client
+    public function getVendor(): ?User
     {
         return $this->vendor;
     }
 
-    public function setVendor(?Client $vendor): self
+    public function setVendor(?User $vendor): self
     {
         $this->vendor = $vendor;
 

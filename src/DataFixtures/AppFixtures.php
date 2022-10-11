@@ -2,45 +2,56 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Client;
+use App\Entity\User;
 use App\Entity\Customer;
 use App\Entity\Product;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
+
+    private $userPasswordHasher;
+    
+    public function __construct(UserPasswordHasherInterface $userPasswordHasher)
+    {
+        $this->userPasswordHasher = $userPasswordHasher;
+    }
     public function load(ObjectManager $manager): void
     {
 
+        
+
         $faker = Factory::create('fr_FR');
 
-        for ($i = 0; $i < 20; $i++) {
-        $client = new Client();
-        $client->setCompany($faker->company);
-        $client->setEmail($faker->email);
-        $client->setPassword($faker->password);
-        $client->setCreationDate($faker->dateTimeBetween('-6 months'));
-        $manager->persist($client);
+        for ($i = 0; $i < 5; $i++) {
+        $user = new User();
+        $user->setCompany($faker->company);
+        $user->setEmail($faker->email);
+        $user->setPassword($this->userPasswordHasher->hashPassword($user, 'password'));
+        $user->setCreationDate($faker->dateTimeBetween('-6 months'));
+        $manager->persist($user);
         }
 
         for ($i = 0; $i < 20; $i++) {
+
         $customer = new Customer();
         $customer->setEmail($faker->email);
         $customer->setName($faker->name);
         $customer->setCreationDate($faker->dateTimeBetween('-6 months'));
-        $customer->setVendor($client);
+        $customer->setVendor($user);
         $manager->persist($customer);
         }
 
             for ($i = 0; $i < 20; $i++) {
             $product = new Product();
-            $product->setName($faker->phone);
+            $product->setName($faker->name);
             $product->setDescription($faker->text);
             $product->setCreationDate($faker->dateTimeBetween('-6 months'));
-            $product->setManufacturer($faker->company);
+            $product->setManufacturer("Apple");
             $product->setLength($faker->randomFloat(2, 0, 100));
             $product->setWidth($faker->randomFloat(2, 0, 100));
             $product->setWeight($faker->randomFloat(2, 0, 100));
