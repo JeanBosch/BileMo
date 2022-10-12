@@ -39,6 +39,15 @@ class CustomerRepository extends ServiceEntityRepository
         }
     }
 
+    public function findAllWithPagination($page, $limit) {
+        $qb = $this->createQueryBuilder('b')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+        $query = $qb->getQuery();
+        $query->setFetchMode(Customer::class, "vendor", \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER);
+        return $query->getResult();
+    }
+
 //    /**
 //     * @return Customer[] Returns an array of Customer objects
 //     */
