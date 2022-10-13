@@ -10,7 +10,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,11 +36,12 @@ class UserController extends AbstractController
         $idCache = 'users_list_' . $page . '_' . $limit;
         $users = $cachePool->get($idCache, function (ItemInterface $item) use ($repository, $page, $limit) {
             $item->tag('usersCache');
-            $item->expiresAfter(3600);
+            $item->expiresAfter(5);
             return $repository->findAllWithPagination($page, $limit);
         });
-    
-        $jsonClientsList = $serializer->serialize($users, 'json', ['groups' => 'getUsersList']);
+        
+        $context = SerializationContext::create()->setGroups(['getUsersList']);
+        $jsonClientsList = $serializer->serialize($users, 'json', $context);
         return new JsonResponse($jsonClientsList, Response::HTTP_OK, [], true);
     }
 
@@ -53,10 +56,12 @@ class UserController extends AbstractController
        $idCache = 'user_' . $user->getId();
          $user = $cachePool->get($idCache, function (ItemInterface $item) use ($user) {
               $item->tag('userCache');
-              $item->expiresAfter(3600);
+              $item->expiresAfter(5);
               return $user;
             });
-        $jsonClient = $serializer->serialize($user, 'json', ['groups' => 'getUsersList']);
+
+        $context = SerializationContext::create()->setGroups(['getUsersList']);
+        $jsonClient = $serializer->serialize($user, 'json', $context);
         return new JsonResponse($jsonClient, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
@@ -71,11 +76,12 @@ class UserController extends AbstractController
         $idCache = 'customer' . $id->getId();
         $customers = $cachePool->get($idCache, function (ItemInterface $item) use ($repository, $id) {
             $item->tag('customersbyClientCache');
-            $item->expiresAfter(3600);
+            $item->expiresAfter(5);
             return $repository->findBy(['vendor' => $id]);
         });
         $customers = $repository->findBy(['vendor' => $id]);
-        $jsonCustomersByUserList = $serializer->serialize($customers, 'json', ['groups' => 'getCustomersList']);
+        $context = SerializationContext::create()->setGroups(['getUsersList']);
+        $jsonCustomersByUserList = $serializer->serialize($customers, 'json', $context);
         return new JsonResponse($jsonCustomersByUserList, Response::HTTP_OK, [], true);  
         
     }
@@ -90,11 +96,12 @@ class UserController extends AbstractController
         $idCache = 'customer' . $id_customer->getId();
         $customer = $cachePool->get($idCache, function (ItemInterface $item) use ($repository, $id_customer) {
             $item->tag('customerCache');
-            $item->expiresAfter(3600);
+            $item->expiresAfter(5);
             return $repository->find($id_customer);
         });
         $customer = $repository->findBy(['id' => $id_customer, 'vendor' => $id]);
-        $jsonCustomerByUserList = $serializer->serialize($customer, 'json', ['groups' => 'getCustomersList']);
+        $context = SerializationContext::create()->setGroups(['getUsersList']);
+        $jsonCustomerByUserList = $serializer->serialize($customer, 'json', $context);
         return new JsonResponse($jsonCustomerByUserList, Response::HTTP_OK, [], true);  
          
         
@@ -132,7 +139,8 @@ class UserController extends AbstractController
         $em->persist($customer);
         $em->flush();
 
-        $jsonCustomer = $serializer->serialize($customer, 'json', ['groups' => 'getCustomersList']);
+        $context = SerializationContext::create()->setGroups(['getUsersList']);
+        $jsonCustomer = $serializer->serialize($customer, 'json', $context);
         $location = $urlGeneratorInterface->generate('app_detail_customer_by_user', ['id' => $id->getId(), 'id_customer' => $customer->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return new JsonResponse($jsonCustomer, Response::HTTP_CREATED, ['Location' => $location], true);
@@ -147,9 +155,8 @@ class UserController extends AbstractController
 
     public function updateCustomerByClient(User $id, CustomerRepository $repository, Customer $id_customer, EntityManagerInterface $em, SerializerInterface $serializer, Request $request ): JsonResponse
     {
-       $customer = new Customer();
-       $customer = $repository->findOneBy(['id' => $id_customer, 'vendor' => $id]);
-       $serializer->deserialize($request->getContent(), Customer::class, 'json', ['object_to_populate' => $customer]);
+       
+       $serializer->deserialize($request->getContent(), Customer::class, 'json');
        $em->flush();
 
        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
@@ -164,7 +171,20 @@ class UserController extends AbstractController
 
     public function updateClient(User $user, EntityManagerInterface $em, SerializerInterface $serializer, Request $request ): JsonResponse
     {
-       $serializer->deserialize($request->getContent(), User::class, 'json', ['object_to_populate' => $user]);
+       $serializer->deserialize($request->getContent(), User::class, 'json');
+       $em->flush();
+
+       return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * @Route("/api/user/{id}", name="app_delete_client", methods={"DELETE"})
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
+     */
+
+    public function deleteClient(User $user, EntityManagerInterface $em): JsonResponse
+    {
+       $em->remove($user);
        $em->flush();
 
        return new JsonResponse(null, Response::HTTP_NO_CONTENT);

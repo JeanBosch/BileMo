@@ -4,11 +4,48 @@ namespace App\Entity;
 
 use App\Repository\CustomerRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation\Groups;
+use Hateoas\Configuration\Annotation as Hateoas;
 
 /**
+ * @Hateoas\Relation(
+ *     "self",
+ *    href = @Hateoas\Route(
+ *         "app_detail_customer",
+ *        parameters = { "id" = "expr(object.getId())" },
+ *    ),
+ *  exclusion = @Hateoas\Exclusion(groups={"getCustomersList"}) 
+ * 
+ * 
+ * )
+ * 
+ * @Hateoas\Relation(
+ *    "delete",
+ *   href = @Hateoas\Route(
+ *       "app_delete_customer",
+ *      parameters = { "id_customer" = "expr(object.getId())", "id" = "expr(object.getVendor().getId())" },
+ *  ),
+ *  exclusion = @Hateoas\Exclusion(groups={"getCustomersList"})
+ * 
+ * 
+ * )
+ * 
+ * @Hateoas\Relation(
+ *   "update",
+ * href = @Hateoas\Route(
+ *    "app_update_customer",
+ *  parameters = { "id_customer" = "expr(object.getId())", "id" = "expr(object.getVendor().getId())" },
+ * ),
+ * exclusion = @Hateoas\Exclusion(groups={"getCustomersList"})
+ * 
+ * )
+ * 
+ * 
+ * 
  * @ORM\Entity(repositoryClass=CustomerRepository::class)
  */
+
+
 class Customer
 {
     /**
@@ -48,6 +85,7 @@ class Customer
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="customers")
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"getCustomersList"})
      */
     private $vendor;
 

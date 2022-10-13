@@ -5,11 +5,47 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation as Serializer;
+use Hateoas\Configuration\Annotation as Hateoas;
+
 
 /**
+ * @Hateoas\Relation(
+ *     "self",
+ *    href = @Hateoas\Route(
+ *         "app_detail_product",
+ *        parameters = { "id" = "expr(object.getId())" },
+ *    ),
+ *   
+ * 
+ * 
+ * )
+ * 
+ * @Hateoas\Relation(
+ *    "delete",
+ *   href = @Hateoas\Route(
+ *       "app_delete_product",
+ *      parameters = { "id" = "expr(object.getId())" },
+ *  ),
+ * 
+ * 
+ * )
+ * 
+ * @Hateoas\Relation(
+ *   "update",
+ * href = @Hateoas\Route(
+ *    "app_update_product",
+ *  parameters = { "id" = "expr(object.getId())" },
+ * ),
+ * 
+ * 
+ * )
+ * 
+ * 
  * @ORM\Entity(repositoryClass=ProductRepository::class)
  */
+
+
 class Product
 {
     /**

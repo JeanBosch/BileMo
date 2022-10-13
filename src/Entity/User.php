@@ -8,48 +8,90 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Component\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation as Serializer;
+use Hateoas\Configuration\Annotation as Hateoas;
+
+
 
 /**
+ * @Hateoas\Relation(
+ *     "self",
+ *    href = @Hateoas\Route(
+ *         "app_user_client",
+ *        parameters = { "id" = "expr(object.getId())" },
+ *    ),
+ *  exclusion = @Hateoas\Exclusion(groups={"getUsersList"}) 
+ * 
+ * 
+ * )
+ * 
+ * @Hateoas\Relation(
+ *    "delete",
+ *   href = @Hateoas\Route(
+ *       "app_delete_client",
+ *      parameters = { "id" = "expr(object.getId())" },
+ *  ),
+ *  exclusion = @Hateoas\Exclusion(groups={"getUsersList"})
+ * 
+ * 
+ * )
+ * 
+ * @Hateoas\Relation(
+ *   "update",
+ * href = @Hateoas\Route(
+ *    "app_update_client",
+ *  parameters = { "id" = "expr(object.getId())" },
+ * ),
+ * exclusion = @Hateoas\Exclusion(groups={"getUsersList"})
+ * 
+ * )
+ * 
+ * 
+ * 
  * @ORM\Entity(repositoryClass=UserRepository::class)
  */
+
+ 
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"getUsersList"})
+     * @Groups({"getUsersList", "getCustomersList"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
-     * @Groups({"getUsersList"})
+     * @Groups({"getUsersList", "getCustomersList"})
      */
     private $company;
 
     /**
      * @ORM\Column(type="json")
+     * @Groups({"getUsersList", "getCustomersList"})
      */
     private $roles = [];
 
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
-     * @Groups({"getUsersList"})
+    * @Groups({"getUsersList", "getCustomersList"})
      */
     private $password;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"getUsersList"})
+     * @Groups({"getUsersList", "getCustomersList"})
      */
+
     private $email;
 
      /**
      * @ORM\Column(type="datetime")
-     * @Groups({"getUsersList"})
+     * @Groups({"getUsersList"}) 
      */
     private $creation_date;
 

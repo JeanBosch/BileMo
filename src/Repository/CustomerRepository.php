@@ -43,9 +43,9 @@ class CustomerRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('b')
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);
-        $query = $qb->getQuery();
-        $query->setFetchMode(Customer::class, "vendor", \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER);
-        return $query->getResult();
+             
+        return $qb->getQuery()->getResult();
+
     }
 
 //    /**

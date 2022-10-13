@@ -8,13 +8,16 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+
 
 class ProductController extends AbstractController
 {
@@ -30,7 +33,7 @@ class ProductController extends AbstractController
         $idCache = 'products_list_' . $page . '_' . $limit;
         $products = $cachePool->get($idCache, function (ItemInterface $item) use ($repository, $page, $limit) {
             $item->tag('productsCache');
-            $item->expiresAfter(3600);
+            $item->expiresAfter(5);
             return $repository->findAllWithPagination($page, $limit);
         });
 
@@ -49,7 +52,7 @@ class ProductController extends AbstractController
        $idCache = 'product_' . $product->getId();
          $product = $cachePool->get($idCache, function (ItemInterface $item) use ($product) {
               $item->tag('productCache');
-              $item->expiresAfter(3600);
+              $item->expiresAfter(5);
               return $product;
             });
         $jsonProduct = $serializer->serialize($product, 'json');
@@ -83,7 +86,8 @@ class ProductController extends AbstractController
 
     public function updateProduct(Product $product, Request $request, EntityManagerInterface $em, SerializerInterface $serializer): JsonResponse
     {
-        $serializer->deserialize($request->getContent(), Product::class, 'json', ['object_to_populate' => $product]);
+        $serializer->deserialize($request->getContent(), Product::class, 'json');
+        $product->setModifDate(new \DateTime());
         $em->flush();
 
         $jsonProduct = $serializer->serialize($product, 'json');
