@@ -121,6 +121,21 @@ nelmio_api_doc:
                                         email:
                                             type: string
                                         name:
+                                            type: string
+            /api/user:
+                post:
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        company:
+                                            type: string
+                                        password:
+                                            type: string
+                                        email:
                                             type: string                                                                        
         components:
             schemas:

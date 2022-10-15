@@ -102,7 +102,7 @@ class UserController extends AbstractController
      * @return JsonResponse
      * 
      * @Route("/api/user/{id}", name="app_user_client", methods={"GET"})
-     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
+     * @Security("is_granted('ROLE_USER') and user === id or is_granted('ROLE_ADMIN')" , statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
 
     public function getDetailClient(User $user, SerializerInterface $serializer, TagAwareCacheInterface $cachePool): JsonResponse
@@ -117,6 +117,47 @@ class UserController extends AbstractController
         $context = SerializationContext::create()->setGroups(['getUsersList']);
         $jsonClient = $serializer->serialize($user, 'json', $context);
         return new JsonResponse($jsonClient, Response::HTTP_OK, ['accept' => 'json'], true);
+    }
+
+    /**
+     * 
+     * * Cette méthode permet de créer un utilisateur
+     * 
+     * @OA\Response(
+     *   response=201,
+     *  description="Retourne un utilisateur",
+     * @OA\JsonContent(
+     * type="array",
+     * @OA\Items(ref=@Model(type=User::class))
+     * )
+     * )
+     * 
+     * @OA\RequestBody(
+     *  required=true,
+     * 
+     * @OA\JsonContent(ref=@Model(type=User::class))
+     * )
+     * 
+     * @OA\Tag(name="Users")
+     * 
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $em
+     * @return JsonResponse
+     * 
+     * @Route("/api/user", name="app_user_create", methods={"POST"})
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
+     */
+
+     public function createUser(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
+    {
+        $jsonUser = $request->getContent();
+        $user = $serializer->deserialize($jsonUser, User::class, 'json');
+        $user->setCreationDate(new \DateTime());
+        $em->persist($user);
+        $em->flush();
+        $url = $urlGenerator->generate('app_user_client', ['id' => $user->getId()]);
+        return new JsonResponse($serializer->serialize($user, 'json'), Response::HTTP_CREATED, ['Location' => $url], true);
     }
 
 
@@ -144,7 +185,7 @@ class UserController extends AbstractController
      * 
      * 
      * @Route("/api/user/{id}", name="app_update_client", methods={"PUT"})
-     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
+     * @Security("is_granted('ROLE_USER') and user === id or is_granted('ROLE_ADMIN')" , statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
 
     public function updateClient(User $user, EntityManagerInterface $em, SerializerInterface $serializer, Request $request): JsonResponse
@@ -306,7 +347,7 @@ class UserController extends AbstractController
 
     /**
      * 
-     * Cette méthode permet de créer un customer pour à user défini
+     * Cette méthode permet de créer un customer pour un user défini
      * 
      * @OA\Response(
      * response=201,
