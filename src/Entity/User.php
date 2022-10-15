@@ -26,6 +26,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  * 
  * )
  * 
+ * 
  * @Hateoas\Relation(
  *    "delete",
  *   href = @Hateoas\Route(
@@ -47,6 +48,15 @@ use Hateoas\Configuration\Annotation as Hateoas;
  * 
  * )
  * 
+ * @Hateoas\Relation(
+ *    "customers_list",
+ *  href = @Hateoas\Route(
+ *      "app_customers_by_user",
+ *    parameters = { "id" = "expr(object.getId())" },
+ * ),
+ * exclusion = @Hateoas\Exclusion(groups={"getUsersList"})
+ * 
+ * )
  * 
  * 
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -78,7 +88,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
-    * @Groups({"getUsersList", "getCustomersList"})
      */
     private $password;
 

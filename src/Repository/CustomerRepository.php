@@ -45,8 +45,23 @@ class CustomerRepository extends ServiceEntityRepository
             ->setMaxResults($limit);
              
         return $qb->getQuery()->getResult();
+    
 
     }
+
+    public function findByUserWithPagination($vendor, $page, $limit) {
+        $qb = $this->createQueryBuilder('b')
+            ->where('b.vendor = :vendor')
+            ->setParameter('vendor', $vendor)
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+             
+        return $qb->getQuery()->getResult();
+    
+
+    }
+
+
 
 //    /**
 //     * @return Customer[] Returns an array of Customer objects

@@ -11,13 +11,14 @@ use Hateoas\Configuration\Annotation as Hateoas;
  * @Hateoas\Relation(
  *     "self",
  *    href = @Hateoas\Route(
- *         "app_detail_customer",
- *        parameters = { "id" = "expr(object.getId())" },
+ *         "app_detail_customer_by_user",
+ *        parameters = { "id_customer" = "expr(object.getId())" , "id" = "expr(object.getVendor().getId())" },
  *    ),
  *  exclusion = @Hateoas\Exclusion(groups={"getCustomersList"}) 
  * 
  * 
  * )
+ * 
  * 
  * @Hateoas\Relation(
  *    "delete",
@@ -52,19 +53,19 @@ class Customer
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"getCustomersList"})
+     * @Groups({"getUsersList", "getCustomersList"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"getCustomersList"})
+     * @Groups({"getUsersList", "getCustomersList"})
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"getCustomersList"})
+     * @Groups({"getUsersList", "getCustomersList"})
      */
     private $name;
 
@@ -72,20 +73,20 @@ class Customer
 
     /**
      * @ORM\Column(type="datetime")
-     * @Groups({"getCustomersList"})
+     * @Groups({"getUsersList", "getCustomersList"})
      */
     private $creation_date;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
-     * @Groups({"getCustomersList"})
+     * @Groups({"getUsersList", "getCustomersList"})
      */
     private $last_buy_date;
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="customers")
      * @ORM\JoinColumn(nullable=false)
-     * @Groups({"getCustomersList"})
+     * @Groups({"getUsersList", "getCustomersList"})
      */
     private $vendor;
 

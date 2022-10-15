@@ -17,11 +17,48 @@ use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
+
+
 
 
 class ProductController extends AbstractController
 {
     /**
+     * Cette méthode permet de récupérer le catalogue des produits
+     * 
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="La page que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="Le nombre d'éléments que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Response(
+     *    response=200,
+     *   description="Retourne le catalogue des produits",
+     * @OA\JsonContent(
+     *   type="array",
+     * @OA\Items(ref=@Model(type=Product::class))
+     * )
+     * )
+     * 
+     * @OA\Tag(name="Products")
+     *
+     * @param ProductRepository $Repository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @return JsonResponse
+     * 
      * @Route("/api/products", name="app_products", methods={"GET"})
      */
      
@@ -43,6 +80,24 @@ class ProductController extends AbstractController
 
 
     /**
+     * 
+     * Cette méthode permet de récupérer les informations d'un produit
+     * 
+     * @OA\Response(
+     *    response=200,
+     *   description="Retourne les informations du produit",
+     * @OA\JsonContent(
+     *   type="array",
+     * @OA\Items(ref=@Model(type=Product::class))
+     * )
+     * )
+     * 
+     * @OA\Tag(name="Products")
+     *
+     * @param Product $product
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     * 
      * @Route("/api/product/{id}", name="app_detail_product", methods={"GET"})
      */
 
@@ -60,13 +115,44 @@ class ProductController extends AbstractController
     }
 
      /**
+     * 
+     * Cette méthode permet de créer un produit
+     * 
+     * @OA\RequestBody(
+     *   required=true,
+     * 
+    
+     *  @OA\JsonContent(ref=@Model(type=Product::class))
+     * )
+     * 
+     * 
+     * 
+     * @OA\Response(
+     *    response=201,
+     *   description="Retourne le produit créé",
+     * @OA\JsonContent(
+     *   type="array",
+     * @OA\Items(ref=@Model(type=Product::class))
+     * )
+     * )
+     * 
+     * @OA\Tag(name="Products")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     * 
      * @Route("/api/product", name="app_create_product", methods={"POST"})
      * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
 
     public function createProduct(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGeneratorInterface ): JsonResponse
     {
+
+       
        $product = $serializer->deserialize($request->getContent(), Product::class, 'json');
+       $product->setCreationDate(new \DateTime());
        $em->persist($product);
        $em->flush();
 
@@ -80,6 +166,28 @@ class ProductController extends AbstractController
 }
 
     /**
+     * 
+     * Cette méthode permet de modifier un produit (mettre le bon id dans le formulaire)
+     * 
+     * @OA\RequestBody(
+     *  required=true,
+     * 
+     * @OA\JsonContent(ref=@Model(type=Product::class))
+     * )
+     * 
+     * 
+     * @OA\Response(
+     *   response=204,
+     *  description="Retourne le produit modifié",
+     * @OA\JsonContent(
+     * type="array",
+     * @OA\Items(ref=@Model(type=Product::class))
+     * )
+     * )
+     * 
+     * @OA\Tag(name="Products")
+     * 
+     * 
      * @Route("/api/product/{id}", name="app_update_product", methods={"PUT"})
      * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
@@ -95,6 +203,22 @@ class ProductController extends AbstractController
     }
 
     /**
+     * 
+     * Cette méthode permet de supprimer un produit
+     * 
+     * @OA\Response(
+     *  response=204,
+     * description="Retourne le produit supprimé",
+     * @OA\JsonContent(
+     * type="array",
+     * @OA\Items(ref=@Model(type=Product::class))
+     * )
+     * )
+     * 
+     *  @OA\Tag(name="Products")
+     * 
+     * 
+     * 
      * @Route("/api/product/{id}", name="app_delete_product", methods={"DELETE"})
      * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
