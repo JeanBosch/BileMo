@@ -20,6 +20,7 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use OpenApi\Annotations as OA;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 
 
@@ -61,8 +62,8 @@ class ProductController extends AbstractController
      * 
      * @Route("/api/products", name="app_products", methods={"GET"})
      */
-     
-     
+
+
     public function getProductsList(ProductRepository $repository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
     {
         $page = $request->get('page', 1);
@@ -101,20 +102,20 @@ class ProductController extends AbstractController
      * @Route("/api/product/{id}", name="app_detail_product", methods={"GET"})
      */
 
-     
+
     public function getDetailProduct(Product $product, SerializerInterface $serializer, TagAwareCacheInterface $cachePool): JsonResponse
     {
-       $idCache = 'product_' . $product->getId();
-         $product = $cachePool->get($idCache, function (ItemInterface $item) use ($product) {
-              $item->tag('productCache');
-              $item->expiresAfter(5);
-              return $product;
-            });
+        $idCache = 'product_' . $product->getId();
+        $product = $cachePool->get($idCache, function (ItemInterface $item) use ($product) {
+            $item->tag('productCache');
+            $item->expiresAfter(5);
+            return $product;
+        });
         $jsonProduct = $serializer->serialize($product, 'json');
         return new JsonResponse($jsonProduct, Response::HTTP_OK, ['accept' => 'json'], true);
     }
 
-     /**
+    /**
      * 
      * Cette méthode permet de créer un produit
      * 
@@ -147,23 +148,25 @@ class ProductController extends AbstractController
      * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
 
-    public function createProduct(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGeneratorInterface ): JsonResponse
+    public function createProduct(Request $request, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGeneratorInterface, ValidatorInterface $validatorInterface): JsonResponse
     {
 
-       
-       $product = $serializer->deserialize($request->getContent(), Product::class, 'json');
-       $product->setCreationDate(new \DateTime());
-       $em->persist($product);
-       $em->flush();
 
-       $jsonCustomer = $serializer->serialize($product, 'json');
-       $location = $urlGeneratorInterface->generate('app_detail_product', ['id' => $product->getId()]);
+        $product = $serializer->deserialize($request->getContent(), Product::class, 'json');
+        $product->setCreationDate(new \DateTime());
+        $errors = $validatorInterface->validate($product);
+        if (count($errors) > 0) {
+            return $this->json($errors, 400);
+        } else {
+            $em->persist($product);
+            $em->flush();
+        }
 
-       return new JsonResponse($jsonCustomer, Response::HTTP_CREATED, ['Location' => $location], true);
+        $jsonCustomer = $serializer->serialize($product, 'json');
+        $location = $urlGeneratorInterface->generate('app_detail_product', ['id' => $product->getId()]);
 
-
-     
-}
+        return new JsonResponse($jsonCustomer, Response::HTTP_CREATED, ['Location' => $location], true);
+    }
 
     /**
      * 
@@ -192,11 +195,17 @@ class ProductController extends AbstractController
      * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
 
-    public function updateProduct(Product $product, Request $request, EntityManagerInterface $em, SerializerInterface $serializer): JsonResponse
+    public function updateProduct(Product $product, Request $request, EntityManagerInterface $em, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
     {
         $serializer->deserialize($request->getContent(), Product::class, 'json');
         $product->setModifDate(new \DateTime());
-        $em->flush();
+        $errors = $validator->validate($product);
+        if (count($errors) > 0) {
+            return $this->json($errors, 400);
+        } else {
+            $em->persist($product);
+            $em->flush();
+        }
 
         $jsonProduct = $serializer->serialize($product, 'json');
         return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
@@ -232,7 +241,3 @@ class ProductController extends AbstractController
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }
-
-
-    
-

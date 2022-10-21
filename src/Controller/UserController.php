@@ -22,6 +22,8 @@ use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 
 class UserController extends AbstractController
@@ -149,14 +151,21 @@ class UserController extends AbstractController
      * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
 
-     public function createUser(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function createUser(UserPasswordHasherInterface $userPasswordHasher, Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
     {
         $jsonUser = $request->getContent();
         $user = $serializer->deserialize($jsonUser, User::class, 'json');
+        $user->setPassword($userPasswordHasher->hashPassword($user, $user->getPassword()));
         $user->setCreationDate(new \DateTime());
-        $em->persist($user);
-        $em->flush();
-        $url = $urlGenerator->generate('app_user_client', ['id' => $user->getId()]);
+
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            return $this->json($errors, 400);
+        } else {
+            $em->persist($user);
+            $em->flush();
+            $url = $urlGenerator->generate('app_user_client', ['id' => $user->getId()]);
+        }
         return new JsonResponse($serializer->serialize($user, 'json'), Response::HTTP_CREATED, ['Location' => $url], true);
     }
 
@@ -188,12 +197,20 @@ class UserController extends AbstractController
      * @Security("is_granted('ROLE_USER') and user === id or is_granted('ROLE_ADMIN')" , statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
 
-    public function updateClient(User $user, EntityManagerInterface $em, SerializerInterface $serializer, Request $request): JsonResponse
+    public function updateClient(UserPasswordHasherInterface $userPasswordHasher, User $user, EntityManagerInterface $em, SerializerInterface $serializer, Request $request, ValidatorInterface $validator): JsonResponse
     {
         $serializer->deserialize($request->getContent(), User::class, 'json');
-        $em->flush();
+        $user->setPassword($userPasswordHasher->hashPassword($user, $user->getPassword()));
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            return $this->json($errors, 400);
+        } else {
 
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+            $em->persist($user);
+            $em->flush();
+
+            return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        }
     }
 
     /**
@@ -268,7 +285,7 @@ class UserController extends AbstractController
         $page = $request->query->get('page', 1);
         $limit = $request->query->get('limit', 5);
         $idCache = 'customers_' . $id->getId();
-       $customers= $repository->findBy(['vendor' => $id], null, $limit, ($page - 1) * $limit);
+        $customers = $repository->findBy(['vendor' => $id], null, $limit, ($page - 1) * $limit);
         $customers = $cachePool->get($idCache, function (ItemInterface $item) use ($customers, $page, $limit) {
             $item->tag('customersByUserCache');
             $item->expiresAfter(5);
@@ -372,13 +389,19 @@ class UserController extends AbstractController
 
 
 
-    public function createCustomerByUser(Request $request, User $id, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGeneratorInterface): JsonResponse
+    public function createCustomerByUser(Request $request, User $id, EntityManagerInterface $em, SerializerInterface $serializer, UrlGeneratorInterface $urlGeneratorInterface, ValidatorInterface $validator): JsonResponse
     {
         $customer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
         $customer->setCreationDate(new \DateTime());
         $customer->setVendor($id);
-        $em->persist($customer);
-        $em->flush();
+        $errors = $validator->validate($customer);
+        if (count($errors) > 0) {
+            return new JsonResponse((string) $errors, Response::HTTP_BAD_REQUEST, [], true);
+        } else {
+            $em->persist($customer);
+            $em->flush();
+        }
+
 
         $context = SerializationContext::create()->setGroups(['getUsersList']);
         $jsonCustomer = $serializer->serialize($customer, 'json', $context);
@@ -413,11 +436,17 @@ class UserController extends AbstractController
      * @Security("is_granted('ROLE_USER') and user === id or is_granted('ROLE_ADMIN')" , statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
 
-    public function updateCustomerByClient(User $id, CustomerRepository $repository, Customer $id_customer, EntityManagerInterface $em, SerializerInterface $serializer, Request $request): JsonResponse
+    public function updateCustomerByClient(User $id, CustomerRepository $repository, Customer $id_customer, EntityManagerInterface $em, SerializerInterface $serializer, Request $request, ValidatorInterface $validator): JsonResponse
     {
 
         $serializer->deserialize($request->getContent(), Customer::class, 'json');
-        $em->flush();
+        $errors = $validator->validate($id_customer);
+        if (count($errors) > 0) {
+            return new JsonResponse((string) $errors, Response::HTTP_BAD_REQUEST, [], true);
+        } else {
+            $em->persist($id_customer);
+            $em->flush();
+        }
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }

@@ -22,13 +22,14 @@ use OpenApi\Annotations as OA;
 use JMS\Serializer\Serializer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 
 class CustomerController extends AbstractController
 {
     /**
      * 
-      * Cette méthode permet de récupérer l'ensemble des customers
+     * Cette méthode permet de récupérer l'ensemble des customers
      * 
      * @OA\Parameter(
      *     name="page",
@@ -64,7 +65,7 @@ class CustomerController extends AbstractController
      * @Route("/api/customers", name="app_customers", methods={"GET"})
      * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
-     
+
     public function getCustomersList(CustomerRepository $repository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
     {
         $page = $request->get('page', 1);
@@ -96,20 +97,17 @@ class CustomerController extends AbstractController
      * @Route("/api/customer/{id}", name="app_detail_customer", methods={"GET"})
      * @IsGranted("ROLE_ADMIN", statusCode=403, message="Accès refusé, vous n'avez pas les droits nécessaires")
      */
-     
+
     public function getDetailCustomer(Customer $customer, SerializerInterface $serializer, TagAwareCacheInterface $cachePool): JsonResponse
     {
-       $idCache = 'customer_' . $customer->getId();
-         $customer = $cachePool->get($idCache, function (ItemInterface $item) use ($customer) {
-              $item->tag('customerCache');
-              $item->expiresAfter(5);
-              return $customer;
-            });
+        $idCache = 'customer_' . $customer->getId();
+        $customer = $cachePool->get($idCache, function (ItemInterface $item) use ($customer) {
+            $item->tag('customerCache');
+            $item->expiresAfter(5);
+            return $customer;
+        });
         $context = SerializationContext::create()->setGroups(['getCustomersList']);
         $jsonProduct = $serializer->serialize($customer, 'json', $context);
         return new JsonResponse($jsonProduct, Response::HTTP_OK, ['accept' => 'json'], true);
     }
-
-   
-     
 }

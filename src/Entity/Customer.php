@@ -6,6 +6,7 @@ use App\Repository\CustomerRepository;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\Groups;
 use Hateoas\Configuration\Annotation as Hateoas;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Hateoas\Relation(
@@ -59,12 +60,14 @@ class Customer
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(message="Le nom du client est obligatoire")
      * @Groups({"getUsersList", "getCustomersList"})
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(message="Le nom du client est obligatoire")
      * @Groups({"getUsersList", "getCustomersList"})
      */
     private $name;

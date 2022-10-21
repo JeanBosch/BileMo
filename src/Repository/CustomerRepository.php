@@ -39,52 +39,50 @@ class CustomerRepository extends ServiceEntityRepository
         }
     }
 
-    public function findAllWithPagination($page, $limit) {
+    public function findAllWithPagination($page, $limit)
+    {
         $qb = $this->createQueryBuilder('b')
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);
-             
-        return $qb->getQuery()->getResult();
-    
 
+        return $qb->getQuery()->getResult();
     }
 
-    public function findByUserWithPagination($vendor, $page, $limit) {
+    public function findByUserWithPagination($vendor, $page, $limit)
+    {
         $qb = $this->createQueryBuilder('b')
             ->where('b.vendor = :vendor')
             ->setParameter('vendor', $vendor)
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);
-             
-        return $qb->getQuery()->getResult();
-    
 
+        return $qb->getQuery()->getResult();
     }
 
 
 
-//    /**
-//     * @return Customer[] Returns an array of Customer objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('c.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    //    /**
+    //     * @return Customer[] Returns an array of Customer objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('c')
+    //            ->andWhere('c.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('c.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
 
-//    public function findOneBySomeField($value): ?Customer
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    //    public function findOneBySomeField($value): ?Customer
+    //    {
+    //        return $this->createQueryBuilder('c')
+    //            ->andWhere('c.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
 }

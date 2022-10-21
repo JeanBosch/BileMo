@@ -7,6 +7,7 @@ use App\Repository\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as Serializer;
 use Hateoas\Configuration\Annotation as Hateoas;
+use Symfony\Component\Validator\Constraints as Assert;
 
 
 /**
@@ -57,11 +58,15 @@ class Product
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank
+     * @Assert\Length(min=3, max=255)
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=2000)
+     *  @Assert\NotBlank
+     * @Assert\Length(min=3, max=2000)
      */
     private $description;
 
@@ -72,21 +77,28 @@ class Product
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank
      */
     private $manufacturer;
 
     /**
      * @ORM\Column(type="float")
+     * @Assert\GreaterThan(0)
+     * @Assert\Type("float")
      */
     private $length;
 
     /**
      * @ORM\Column(type="float")
+     * @Assert\GreaterThan(0)
+     * @Assert\Type("float")
      */
     private $width;
 
     /**
      * @ORM\Column(type="float")
+     * @Assert\GreaterThan(0)
+     * @Assert\Type("float")
      */
     private $weight;
 
@@ -97,11 +109,15 @@ class Product
 
     /**
      * @ORM\Column(type="float")
+     * @Assert\GreaterThan(0)
+     * @Assert\Type("float")
      */
+
     private $price;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank
      */
     private $image;
 

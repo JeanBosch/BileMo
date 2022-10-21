@@ -15,7 +15,7 @@ class AppFixtures extends Fixture
 {
 
     private $userPasswordHasher;
-    
+
     public function __construct(UserPasswordHasherInterface $userPasswordHasher)
     {
         $this->userPasswordHasher = $userPasswordHasher;
@@ -23,30 +23,30 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
 
-        
+
 
         $faker = Factory::create('fr_FR');
 
         for ($i = 0; $i < 5; $i++) {
-        $user = new User();
-        $user->setCompany($faker->company);
-        $user->setEmail($faker->email);
-        $user->setPassword($this->userPasswordHasher->hashPassword($user, 'password'));
-        $user->setCreationDate($faker->dateTimeBetween('-6 months'));
-        $manager->persist($user);
+            $user = new User();
+            $user->setCompany($faker->company);
+            $user->setEmail($faker->email);
+            $user->setPassword($this->userPasswordHasher->hashPassword($user, 'password'));
+            $user->setCreationDate($faker->dateTimeBetween('-6 months'));
+            $manager->persist($user);
         }
 
         for ($i = 0; $i < 20; $i++) {
 
-        $customer = new Customer();
-        $customer->setEmail($faker->email);
-        $customer->setName($faker->name);
-        $customer->setCreationDate($faker->dateTimeBetween('-6 months'));
-        $customer->setVendor($user);
-        $manager->persist($customer);
+            $customer = new Customer();
+            $customer->setEmail($faker->email);
+            $customer->setName($faker->name);
+            $customer->setCreationDate($faker->dateTimeBetween('-6 months'));
+            $customer->setVendor($user);
+            $manager->persist($customer);
         }
 
-            for ($i = 0; $i < 20; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $product = new Product();
             $product->setName($faker->name);
             $product->setDescription($faker->text);
@@ -58,15 +58,12 @@ class AppFixtures extends Fixture
             $product->setPrice($faker->randomFloat(2, 10, 100));
             $product->setImage($faker->imageUrl(640, 480, 'cats', true, 'Faker'));
             $manager->persist($product);
-                
-                }
+        }
 
 
 
-       
-            
-        // $product = new Product();
-        // $manager->persist($product);
+
+
 
         $manager->flush();
     }

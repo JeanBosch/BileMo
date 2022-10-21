@@ -26,8 +26,8 @@ class Client
      * @ORM\Column(type="string", length=255)
      * @Groups({"getClientsList"})
      */
-     
-     
+
+
     private $Company;
 
     /**

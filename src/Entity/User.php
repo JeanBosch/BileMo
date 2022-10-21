@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\Collection;
 use JMS\Serializer\Annotation\Groups;
 use JMS\Serializer\Annotation as Serializer;
 use Hateoas\Configuration\Annotation as Hateoas;
+use Symfony\Component\Validator\Constraints as Assert;
 
 
 
@@ -62,7 +63,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  * @ORM\Entity(repositoryClass=UserRepository::class)
  */
 
- 
+
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
@@ -74,6 +75,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $id;
 
     /**
+     * @Assert\NotBlank
      * @ORM\Column(type="string", length=180, unique=true)
      * @Groups({"getUsersList", "getCustomersList"})
      */
@@ -86,19 +88,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $roles = [];
 
     /**
+     * @Assert\NotBlank
      * @var string The hashed password
      * @ORM\Column(type="string")
      */
     private $password;
 
     /**
+     * @Assert\NotBlank
+     * @Assert\Email
      * @ORM\Column(type="string", length=255)
      * @Groups({"getUsersList", "getCustomersList"})
      */
 
     private $email;
 
-     /**
+    /**
      * @ORM\Column(type="datetime")
      * @Groups({"getUsersList"}) 
      */
